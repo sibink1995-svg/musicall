@@ -45,7 +45,7 @@ class MainActivity : Activity() {
     private lateinit var songLabel: TextView
     private lateinit var status: TextView
     private lateinit var adjLabel: TextView
-    private lateinit var progress: ProgressBar
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,10 +75,10 @@ class MainActivity : Activity() {
             setOnClickListener { onClick() }
         }
 
-    private fun addFull(parent: LinearLayout, v: View, topMargin: Int = 10) {
+    private fun addFull(parent: LinearLayout, v: View, top: Int = 10) {
         parent.addView(v, LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-        ).apply { topMargin = dp(topMargin) })
+        ).apply { topMargin = dp(top) })
     }
 
     private fun buildUi() {
@@ -107,8 +107,8 @@ class MainActivity : Activity() {
         root.addView(songLabel)
 
         addFull(root, button("2. മറ്റേ ഫോണിലേക്ക് അയക്കുക", "#1565C0") { sendSong() })
-        progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100 }
-        addFull(root, progress, 8)
+        progressBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply { max = 100 }
+        addFull(root, progressBar, 8)
 
         addFull(root, button("▶  3. രണ്ടിലും ഒരേ സമയം പ്ലേ ചെയ്യുക", green) { playBoth() }, 12)
         addFull(root, button("⏹  നിർത്തുക", red) { stopBoth() })
@@ -153,7 +153,7 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun setProgress(p: Int) = runOnUiThread { progress.progress = p }
+    private fun showProgress(p: Int) = runOnUiThread { progressBar.progress = p }
 
     // ---------- Pick song ----------
     private fun pickSong() {
@@ -213,7 +213,7 @@ class MainActivity : Activity() {
         val f = hostFile
         if (f == null) { setStatus("ആദ്യം പാട്ട് തിരഞ്ഞെടുക്കുക", red); return }
         val ip = targetIp() ?: return
-        setProgress(0)
+        showProgress(0)
         setStatus("അയക്കുന്നു...", "#1565C0")
         Thread {
             try {
@@ -234,7 +234,7 @@ class MainActivity : Activity() {
                             out.write(buf, 0, n)
                             sent += n
                             val pct = (sent * 100 / total).toInt()
-                            if (pct != lastPct) { lastPct = pct; setProgress(pct) }
+                            if (pct != lastPct) { lastPct = pct; showProgress(pct) }
                         }
                     }
                     out.flush()
@@ -373,7 +373,7 @@ class MainActivity : Activity() {
         when (inp.readUTF()) {
             "FILE" -> {
                 val total = inp.readLong()
-                setProgress(0)
+                showProgress(0)
                 setStatus("പാട്ട് സ്വീകരിക്കുന്നു...", "#1565C0")
                 val f = File(cacheDir, "recv_song")
                 val buf = ByteArray(65536)
@@ -386,7 +386,7 @@ class MainActivity : Activity() {
                         fo.write(buf, 0, n)
                         left -= n
                         val pct = ((total - left) * 100 / total).toInt()
-                        if (pct != lastPct) { lastPct = pct; setProgress(pct) }
+                        if (pct != lastPct) { lastPct = pct; showProgress(pct) }
                     }
                 }
                 recvFile = f
